@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OnboardTrack – Customer Onboarding Tracker</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1b1f2a;--muted:#667085;--line:#e4e7ee;--brand:#4f46e5;--green:#15803d;--greenbg:#dcfce7;--amber:#b45309;--amberbg:#fef3c7;--red:#b91c1c;--redbg:#fee2e2;--blue:#1d4ed8;--bluebg:#dbeafe;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1117;--card:#181b24;--text:#e8eaf0;--muted:#98a2b3;--line:#2a2f3c;--brand:#818cf8;--green:#4ade80;--greenbg:#14301f;--amber:#fbbf24;--amberbg:#3a2c0b;--red:#f87171;--redbg:#3b1515;--blue:#60a5fa;--bluebg:#16264a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1117;--card:#181b24;--text:#e8eaf0;--muted:#98a2b3;--line:#2a2f3c;--brand:#818cf8;--green:#4ade80;--greenbg:#14301f;--amber:#fbbf24;--amberbg:#3a2c0b;--red:#f87171;--redbg:#3b1515;--blue:#60a5fa;--bluebg:#16264a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+h1{font-size:20px;margin:0}h1 small{display:block;font-size:13px;font-weight:400;color:var(--muted)}
+.tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;color:var(--muted);padding:8px 14px;border-radius:8px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--brand);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:26px}.stat span{color:var(--muted);font-size:13px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);margin-top:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+button.btn,select,input{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 11px}
+button.btn{cursor:pointer}button.btn:hover{border-color:var(--brand)}
+button.pri{background:var(--brand);color:#fff;border-color:var(--brand)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+td small{display:block;color:var(--muted)}
+.pbar{width:110px;height:8px;background:var(--line);border-radius:5px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.pbar i{display:block;height:100%;background:var(--brand)}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.high{background:var(--redbg);color:var(--red)}.medium{background:var(--amberbg);color:var(--amber)}.low{background:var(--bluebg);color:var(--blue)}.done{background:var(--greenbg);color:var(--green)}
+.add{display:none;gap:8px;flex-wrap:wrap;margin-bottom:12px}.add.show{display:flex}
+.check{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.check input{width:20px;height:20px}.check.ok span{text-decoration:line-through;color:var(--muted)}
+.log div{padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%}
+#toast.show{opacity:1}
+.muted{color:var(--muted)}h2{font-size:16px;margin:0 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>📋 OnboardTrack<small>Spot stuck customers before they quit</small></h1>
+<div class="tabs"><button id="t-dash" class="on" onclick="setView('dash')">Company dashboard</button><button id="t-portal" onclick="setView('portal')">Customer portal</button></div>
+</header>
+<div id="app"></div>
+</div>
+<div id="toast"></div>
+<script>
+var STEPS=["Create your account","Import your data","Invite your team","Configure settings","Complete your first task"];
+var KEY="onboardtrack-v1";
+function seed(){return [
+{id:1,name:"Sunrise Public School",contact:"Ravi Kumar",done:[1,1,0,0,0],idle:6},
+{id:2,name:"Green Valley Clinic",contact:"Dr. Meena Rao",done:[1,1,1,1,0],idle:1},
+{id:3,name:"Apex Logistics",contact:"Suresh Babu",done:[1,0,0,0,0],idle:8},
+{id:4,name:"BrightPath Academy",contact:"Anitha S",done:[1,1,1,1,1],idle:0},
+{id:5,name:"QuickMart Retail",contact:"Imran Khan",done:[1,1,1,0,0],idle:3},
+{id:6,name:"Nova Web Studio",contact:"Priya Reddy",done:[0,0,0,0,0],idle:5},
+{id:7,name:"CityCare Hospital",contact:"Vikram Rao",done:[1,1,1,1,0],idle:4},
+{id:8,name:"Spice Route Cafe",contact:"Lakshmi N",done:[1,0,0,0,0],idle:2}]}
+var state=null;
+try{state=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!state||!state.customers){state={customers:seed(),nextId:9,log:[]}}
+var view="dash",filter="all",portalId=null,q="";
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function prog(c){return c.done.reduce(function(a,b){return a+b},0)}
+function risk(c){var left=5-prog(c);if(left===0)return"done";if((c.idle>=5&&left>=2)||c.idle>=7)return"high";if(c.idle>=3||(c.idle>=2&&left>=4))return"medium";return"low"}
+var LABEL={done:"Completed",high:"High risk",medium:"Watch",low:"On track"};
+function reason(c){var r=risk(c),l=5-prog(c);if(r==="high")return c.idle+" days idle, "+l+" steps left";if(r==="medium")return c.idle+" days idle, keep an eye";return"Active recently"}
+function byId(id){return state.customers.filter(function(c){return c.id===id})[0]}
+function log(t){state.log.unshift(t);state.log=state.log.slice(0,6)}
+function toast(t){var el=document.getElementById("toast");el.textContent=t;el.className="show";clearTimeout(toast.t);toast.t=setTimeout(function(){el.className=""},2200)}
+function setView(v){view=v;document.getElementById("t-dash").className=v==="dash"?"on":"";document.getElementById("t-portal").className=v==="portal"?"on":"";render()}
+function openPortal(id){portalId=id;setView("portal")}
+function remind(id){var c=byId(id);log("Reminder sent to "+c.contact+" ("+c.name+")");save();toast("Reminder sent to "+c.contact);render()}
+function simDay(){state.customers.forEach(function(c){if(prog(c)<5)c.idle++});log("Simulated one day passing");save();render()}
+function resetDemo(){state={customers:seed(),nextId:9,log:[]};save();render();toast("Demo data reset")}
+function addCustomer(){var n=document.getElementById("an").value.trim(),p=document.getElementById("ap").value.trim();if(!n||!p){toast("Enter company and contact name");return}
+state.customers.push({id:state.nextId++,name:n,contact:p,done:[0,0,0,0,0],idle:0});log("New customer added: "+n);save();render();toast("Customer added")}
+function toggleStep(id,i){var c=byId(id);c.done[i]=c.done[i]?0:1;c.idle=0;if(c.done[i])log(c.name+" completed: "+STEPS[i]);save();render()}
+function setFilter(v){filter=v;render()}
+function setQ(v){q=v;render();var el=document.getElementById("sq");if(el){el.focus();el.setSelectionRange(v.length,v.length)}}
+function toggleAdd(){document.getElementById("add").classList.toggle("show")}
+function dash(){
+var cs=state.customers,cnt={high:0,medium:0,low:0,done:0};
+cs.forEach(function(c){cnt[risk(c)]++});
+var avg=cs.length?Math.round(cs.reduce(function(a,c){return a+prog(c)},0)/cs.length/5*100):0;
+var list=cs.filter(function(c){return (filter==="all"||risk(c)===filter)&&c.name.toLowerCase().indexOf(q.toLowerCase())>-1}).sort(function(a,b){var o={high:0,medium:1,low:2,done:3};return o[risk(a)]-o[risk(b)]||b.idle-a.idle});
+var col={high:"var(--red)",medium:"var(--amber)",low:"var(--blue)",done:"var(--green)"};
+var h='<div class="stats"><div class="stat"><b>'+cs.length+'</b><span>Total customers</span></div><div class="stat"><b style="color:var(--red)">'+cnt.high+'</b><span>High risk</span></div><div class="stat"><b>'+avg+'%</b><span>Average progress</span></div><div class="stat"><b style="color:var(--green)">'+cnt.done+'</b><span>Fully onboarded</span></div></div>';
+h+='<div class="card"><h2>Customer health</h2><div class="bar">';
+["high","medium","low","done"].forEach(function(k){if(cs.length)h+='<i style="width:'+cnt[k]/cs.length*100+'%;background:'+col[k]+'"></i>'});
+h+='</div><div class="legend">';
+["high","medium","low","done"].forEach(function(k){h+='<span><span class="dot" style="background:'+col[k]+'"></span>'+LABEL[k]+' ('+cnt[k]+')</span>'});
+h+='</div></div>';
+h+='<div class="card"><div class="tools"><input id="sq" placeholder="Search company" value="'+esc(q)+'" oninput="setQ(this.value)"><select onchange="setFilter(this.value)">';
+[["all","All customers"],["high","High risk"],["medium","Watch"],["low","On track"],["done","Completed"]].forEach(function(o){h+='<option value="'+o[0]+'"'+(filter===o[0]?" selected":"")+'>'+o[1]+'</option>'});
+h+='</select><button class="btn" onclick="simDay()">⏩ Simulate +1 day</button><button class="btn pri" onclick="toggleAdd()">+ Add customer</button><button class="btn" onclick="resetDemo()">Reset demo</button></div>';
+h+='<div class="add" id="add"><input id="an" placeholder="Company name"><input id="ap" placeholder="Contact person"><button class="btn pri" onclick="addCustomer()">Add</button></div>';
+h+='<div class="scroll"><table><tr><th>Customer</th><th>Progress</th><th>Inactive</th><th>Status</th><th></th></tr>';
+list.forEach(function(c){var r=risk(c),p=prog(c);
+h+='<tr><td><b>'+esc(c.name)+'</b><small>'+esc(c.contact)+'</small></td><td><span class="pbar"><i style="width:'+p*20+'%"></i></span>'+p+'/5</td><td>'+(r==="done"?"–":c.idle+" days")+'</td><td><span class="badge '+r+'">'+LABEL[r]+'</span>'+(r==="done"?"":'<small>'+reason(c)+'</small>')+'</td><td>'+(r==="done"?"":'<button class="btn" onclick="remind('+c.id+')">Remind</button> ')+'<button class="btn" onclick="openPortal('+c.id+')">Portal</button></td></tr>'});
+if(!list.length)h+='<tr><td colspan="5" class="muted">No customers in this view.</td></tr>';
+h+='</table></div></div>';
+h+='<div class="card log"><h2>Recent activity</h2>';
+if(!state.log.length)h+='<div>No activity yet. Try a reminder or tick a step in the customer portal.</div>';
+state.log.forEach(function(t){h+='<div>'+esc(t)+'</div>'});
+return h+'</div>'}
+function portal(){
+var cs=state.customers;if(!portalId||!byId(portalId))portalId=cs.length?cs[0].id:null;
+var h='<div class="card"><div class="tools"><span class="muted">Viewing as:</span><select onchange="portalId=+this.value;render()">';
+cs.forEach(function(c){h+='<option value="'+c.id+'"'+(c.id===portalId?" selected":"")+'>'+esc(c.name)+'</option>'});
+h+='</select></div>';
+var c=byId(portalId);if(!c)return h+'<p>No customers yet.</p></div>';
+var p=prog(c);
+h+='<h2>Welcome, '+esc(c.contact)+'! 👋</h2><p class="muted">Finish these steps to get the most out of your new software.</p><div class="bar" style="margin:12px 0 6px"><i style="width:'+p*20+'%;background:var(--brand)"></i></div><p class="muted" style="margin:0 0 14px">'+p+' of 5 steps done</p>';
+STEPS.forEach(function(s,i){h+='<label class="check'+(c.done[i]?" ok":"")+'"><input type="checkbox" '+(c.done[i]?"checked":"")+' onchange="toggleStep('+c.id+','+i+')"><span>'+(i+1)+'. '+s+'</span></label>'});
+if(p===5)h+='<p style="color:var(--green);font-weight:600">🎉 All done! You’re fully set up.</p>';
+else{var nx=c.done.indexOf(0);h+='<p class="muted">Next up: <b>'+STEPS[nx]+'</b></p>'}
+return h+'</div><p class="muted">Tip: tick a step here, then switch to the Company dashboard to see the risk status update.</p>'}
+function render(){document.getElementById("app").innerHTML=view==="dash"?dash():portal()}
+render();
+</script>
+</body>
+</html>
