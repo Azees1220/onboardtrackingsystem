@@ -27,3 +27,6 @@ Open `index.html` in a browser. To deploy, push to GitHub and import the repo on
 - [ ] Login for company and customer
 - [ ] Real email reminders
 - [ ] Custom onboarding steps per company
+
+
+© 2026 Kotla Abdul Azees. All rights reserved.
