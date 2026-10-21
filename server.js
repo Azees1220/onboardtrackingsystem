@@ -40,7 +40,7 @@ function view(c) {
 }
 function addLog(text) { db.log.unshift({ t: Date.now(), text }); db.log = db.log.slice(0, 20); }
 const HEAD = { "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer",
-  "Content-Security-Policy": "default-src 'self'; style-src 'self'; script-src 'self'; frame-ancestors 'none'" };
+  "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'" };
 function send(res, code, obj, extra) { res.writeHead(code, Object.assign({ "Content-Type": "application/json", "Cache-Control": "no-store" }, HEAD, extra)); res.end(JSON.stringify(obj)); }
 function body(req) {
   return new Promise((ok, no) => { let d = ""; req.on("data", c => { d += c; if (d.length > 10000) { no(new Error("Too large")); req.destroy(); } });
