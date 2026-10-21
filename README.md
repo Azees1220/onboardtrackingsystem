@@ -1,6 +1,9 @@
 # OnboardTrack v2: Customer Onboarding Tracker
 
-Spot stuck customers before they quit.
+Spot stuck customers before they quit.**🔗 Live demo:** https://onboardtrackingsystem.onrender.com
+
+The free server sleeps when idle, so the first load can take about 30 seconds.
+Log in as admin (`admin@demo.com` / `Admin@123`) or as a customer (`ravi@sunrise.demo` / `Welcome@123`).
 
 ## The problem
 B2B software companies lose customers because onboarding (setup) is tracked in WhatsApp, Excel and Google Docs. Nobody notices when a new customer gets stuck, so the customer churns.
